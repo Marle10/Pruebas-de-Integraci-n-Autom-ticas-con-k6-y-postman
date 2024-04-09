@@ -1,0 +1,52 @@
+import http from 'k6/http';
+import { sleep } from 'k6';
+
+export default function () {
+  // Escenario 1: Registro de Usuario
+  let registerPayload = JSON.stringify({
+    username: 'testuser',
+    email: 'testuser@example.com',
+    password: 'password123'
+  });
+  let registerParams = {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+  let registerResponse = http.post('http://localhost:3000/register', registerPayload, registerParams);
+  console.log('Registro de Usuario:', registerResponse.status);
+
+  // Esperar antes de continuar con el siguiente escenario
+  sleep(3);
+
+  // Escenario 2: Inicio de Sesión
+  let loginPayload = JSON.stringify({
+    username: 'testuser',
+    password: 'password123'
+  });
+  let loginResponse = http.post('http://localhost:3000/login', loginPayload, registerParams);
+  console.log('Inicio de Sesión:', loginResponse.status);
+
+  // Esperar antes de continuar con el siguiente escenario
+  sleep(3);
+
+  // Escenario 3: Obtener Datos de Usuario
+  let token = loginResponse.json('token');
+  let authHeaders = {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  };
+  let userProfileResponse = http.get('http://localhost:3000/user', authHeaders);
+  console.log('Datos de Usuario:', userProfileResponse.status);
+
+  // Esperar antes de continuar con el siguiente escenario
+  sleep(3);
+
+  // Escenario 4: Actualización de Datos de Usuario
+  let updatePayload = JSON.stringify({
+    email: 'updatedemail@example.com'
+  });
+  let updateResponse = http.put('http://localhost:3000/user', updatePayload, authHeaders);
+  console.log('Actualización de Datos de Usuario:', updateResponse.status);
+}
